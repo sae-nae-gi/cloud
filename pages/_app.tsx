@@ -1,5 +1,4 @@
 import { NextPage } from "next";
-
 interface AppProps {
 
 }
