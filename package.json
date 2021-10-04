@@ -13,7 +13,8 @@
     "dev": "next dev",
     "build": "next build",
     "export": "next export",
-    "lint": "eslint --fix"
+    "lint": "eslint --fix",
+    "lint-fix": "eslint **/*.{ts,jsx,js,tsx} --fix"
   },
   "husky": {
     "hooks": {
@@ -21,14 +22,9 @@
     }
   },
   "lint-staged": {
-    "pages/**/*.{js,ts,jsx,tsx}": [
+    "**/*.{js,ts,jsx,tsx}": [
       "eslint --fix",
-      "git add"
-    ],
-    "src/**/*.{js,ts,jsx,tsx}": [
-      "eslint --fix",
-      "prettier --write",
-      "git add"
+      "prettier --write"
     ]
   },
   "devDependencies": {
