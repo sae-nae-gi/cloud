@@ -14,7 +14,7 @@
     "dev": "next dev",
     "build": "next build",
     "export": "next export",
-    "lint": "eslint '**/*.{ts,js,tsx}'"
+    "lint": "eslint '**/*.{js,ts,tsx}'"
   },
   "husky": {
     "hooks": {
