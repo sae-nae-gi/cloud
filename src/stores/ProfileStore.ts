@@ -15,7 +15,7 @@ export const actionCreator = (type: ProfileActionType,payload: Partial<Profile>)
   payload
 })
 
-export const profileReducer = (state: Profile, action: ProfileAction): Profile => {
+export const profileReducer = (state: Profile = {userName: undefined, image: undefined}, action: ProfileAction): Profile => {
   switch(action.type) {
     case ACTION_LOGIN:
     case ACTION_LOGOUT:
