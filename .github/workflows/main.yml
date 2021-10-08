@@ -23,34 +23,34 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
-  - name: Install node
-          uses: actions/setup-node@v1
-          with:
-            node-version: 14.15.5
+      - name: Install node
+              uses: actions/setup-node@v1
+              with:
+                node-version: 14.15.5
 
-  - uses: actions/cache@v2
-    with:
-      path: "**/node_modules"
-      key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+      - uses: actions/cache@v2
+        with:
+          path: "**/node_modules"
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
 
-  # Install modules
-  - name: Install modules
-    run: yarn install
+      # Install modules
+      - name: Install modules
+        run: yarn install
 
-  - name: tsc
-    env:
-      NODE_OPTIONS: "--max_old_space_size=4096"
-    run: yarn tsc
-  
-  - name: eslint
-    run: yarn lint
-  
-  - name: lint test result
-    uses: 8398a7/action-slack@v3
-    with:
-      status: ${{job.status}}
-      fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
-      author_name: dante01yoon
-    env:
-      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_ACTION_BOT }}
-    if: always()
+      - name: tsc
+        env:
+          NODE_OPTIONS: "--max_old_space_size=4096"
+        run: yarn tsc
+      
+      - name: eslint
+        run: yarn lint
+      
+      - name: lint test result
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{job.status}}
+          fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
+          author_name: dante01yoon
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_ACTION_BOT }}
+        if: always()
