@@ -1,14 +1,15 @@
 import { NextPage } from "next";
+import { AppProps } from "next/app";
 import { appStore  } from "../src/stores";
 import { Provider} from "react-redux";
 
-interface AppProps {
+interface AppExtendProps extends AppProps {
 
 }
 
-const App:NextPage<AppProps> = () => (
+const App:NextPage<AppProps> = ({Component, pageProps}) => (
     <Provider store={appStore}>
-      <div />
+      <Component {...pageProps}/>
     </Provider>
   )
 
