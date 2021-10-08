@@ -6,15 +6,11 @@ interface AppProps {
 
 }
 
-const App:NextPage<AppProps> = () => {
-  return (
+const App:NextPage<AppProps> = () => (
     <Provider store={appStore}>
-      <div>
-
-      </div>
+      <div />
     </Provider>
   )
-}
 
 export const getServerSideProps = async () => {
   

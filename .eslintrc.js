@@ -3,27 +3,27 @@ module.exports = {
         "browser": true,
         "es2021": true
     },
-    "extends": [
-        "plugin:react/recommended",
-        "airbnb",
-        "plugin:prettier/recommended",
-    ],
-    "ignorePatterns": [".next/**/*", "node_modules/"],
-    "parser": "@typescript-eslint/parser",
-    "parserOptions": {
-        "ecmaFeatures": {
-            "jsx": true
+    extends: ["airbnb", "prettier"],
+    parser: "babel-eslint",
+    parserOptions: {
+        ecmaFeatures: {
+        legacyDecorators: true,
         },
-        "ecmaVersion": 12,
-        "sourceType": "module"
+        allowImportExportEverywhere: true,
     },
     "plugins": [
         "react",
         "@typescript-eslint",
+        "react-hooks",
     ],
     "rules": {
-        "semi": 0,
-        "quotes": ["error", "double"],
-        "no-unused-vars": "warn",
+        "no-undef": "off",
+        "no-unused-expressions": "off",
+        "no-unused-vars": "off",
+        "import/first": "off",
+        "import/order": "off",
+        "@typescript-eslint/no-unused-vars": "off",
+        "@typescript-eslint/naming-convention": "off",
+        "@typescript-eslint/no-empty-function": "off",
     }
 };

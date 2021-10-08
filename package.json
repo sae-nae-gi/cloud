@@ -14,8 +14,7 @@
     "dev": "next dev",
     "build": "next build",
     "export": "next export",
-    "lint": "eslint --fix",
-    "lint-fix": "eslint **/*.{ts,jsx,js,tsx} --fix"
+    "lint": "eslint '**/*.{ts,js,tsx}'"
   },
   "husky": {
     "hooks": {
@@ -23,7 +22,7 @@
     }
   },
   "lint-staged": {
-    "**/*.{js,ts,jsx,tsx}": [
+    "**/*.{js,ts,tsx}": [
       "eslint --fix",
       "prettier --write"
     ]
@@ -32,6 +31,7 @@
     "@types/react": "^17.0.26",
     "@typescript-eslint/eslint-plugin": "^4.32.0",
     "@typescript-eslint/parser": "^4.32.0",
+    "babel-eslint": "^10.1.0",
     "eslint": "^7.32.0",
     "eslint-config-airbnb": "^18.2.1",
     "eslint-config-prettier": "^8.3.0",
@@ -39,6 +39,7 @@
     "eslint-plugin-jsx-a11y": "^6.4.1",
     "eslint-plugin-prettier": "^4.0.0",
     "eslint-plugin-react": "^7.26.1",
+    "eslint-plugin-react-hooks": "^4.2.0",
     "husky": "^7.0.2",
     "lint-staged": "^11.1.2",
     "prettier": "^2.4.1"
