@@ -11,3 +11,4 @@ static
 #config
 .prettierrc.js
 .eslintrc.js
+next-env.d.ts
