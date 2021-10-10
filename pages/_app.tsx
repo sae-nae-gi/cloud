@@ -2,19 +2,16 @@ import { NextPage } from "next";
 import { AppProps } from "next/app";
 import { appStore  } from "../src/stores";
 import { Provider} from "react-redux";
-import { createContext } from "react";
 import { Socket } from "../src/utils";
+import { SocketProvider } from "../src/stores/SocketStore";
 import { ThemeProvider, Global, css } from "@emotion/react";
 import emotionReset from "emotion-reset"
 import theme from "../src/theme";
 import Layout from "../src/components/layout";
 
-const socketContext = createContext(null);
-
-const { Provider: SocketProvider} = socketContext;
-
 const App:NextPage<AppProps> = ({Component, pageProps}) => {
   const socket = new Socket();
+
   return (
     <ThemeProvider theme={theme}>
       <Global styles={css`
@@ -22,10 +19,19 @@ const App:NextPage<AppProps> = ({Component, pageProps}) => {
       
         html,
         body {
+          background-color: #202124;
+          color: white;
           height: 100%;
         }
 
-        #__next,
+        * {
+          box-sizing: border-box;
+        }
+
+        #__next {
+          height: calc(100% - 92px);
+        }
+
         main {
           height: 100%;
         }

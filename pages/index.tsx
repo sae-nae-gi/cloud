@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { NextPage} from "next";
 import styled from "@emotion/styled";
+import { nanoid } from "nanoid";
+import { useRouter } from "next/router";
 
 const StyledArticle = styled.article`
   display: flex;
@@ -48,10 +50,16 @@ const StyledSubmitButton = styled.button`
 
 const IndexPage: NextPage<IndexPageProps> = () => {
   const [name, setName] = useState("");
+  const router = useRouter();
+
+  const moveToRoom = () => {
+    router.push(`/meet/${nanoid()}`)
+  }
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("name: ", name);
+    moveToRoom();
+    
   }
 
   const handleChange = (e) => {
