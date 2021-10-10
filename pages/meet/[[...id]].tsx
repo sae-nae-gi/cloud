@@ -1,9 +1,7 @@
 import { NextPage } from "next";
-import { useEffect } from "react";
 import styled from "@emotion/styled";
 import ChatBox from "../../src/components/chat/ChatBox";
 import BottomBar from "../../src/components/bottomBar";
-import { useSocket } from "../../src/hooks";
 
 const StyledWrapper = styled.div`
   display: flex;
@@ -26,23 +24,13 @@ const StyledChatArticle = styled.article`
 const MeetPage: NextPage<WatchPageProps> = ({
 
 }) => {
-  const socket = useSocket();
   const handleSubmitChat = () => {
     
   }
-  
-  useEffect(() => {
-    
-
-    return () => {
-      
-    }
-  },[]);
 
   return(
     <StyledWrapper>
       <StyledVideoArticle>
-        {/* @ts-expect-error */}
         <BottomBar/>
       </StyledVideoArticle>
       <StyledChatArticle>
