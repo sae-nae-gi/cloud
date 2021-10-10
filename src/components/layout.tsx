@@ -8,7 +8,6 @@ const StyledMain = styled.main`
 
 const StyledSection = styled.section`
   height: 100%;
-  padding: 0 120px;
 
   @media (max-width: 450px) {
     padding: 0 30px;

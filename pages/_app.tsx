@@ -22,10 +22,19 @@ const App:NextPage<AppProps> = ({Component, pageProps}) => {
       
         html,
         body {
+          background-color: #202124;
+          color: white;
           height: 100%;
         }
 
-        #__next,
+        * {
+          box-sizing: border-box;
+        }
+
+        #__next {
+          height: calc(100% - 92px);
+        }
+
         main {
           height: 100%;
         }

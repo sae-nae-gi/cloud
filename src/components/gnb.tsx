@@ -1,6 +1,7 @@
 import React, { FC, useEffect } from "react";
 import styled from "@emotion/styled";
 import logo from "../asset/logo.png";
+import Link from "next/link"
 
 const StyledWrapper = styled.nav`
   display: flex;
@@ -8,6 +9,7 @@ const StyledWrapper = styled.nav`
   background-color: ${({theme}) => theme.colors.gnb};
   height: 92px;
   padding: 0 40px;
+  border-bottom: 1px solid ${({theme}) => theme.colors.border};
 
   @media (max-width: 450px) {
     height: 60px;
@@ -22,6 +24,7 @@ const StyledLogoBox = styled.div<{
   background-size: cover;
   width: 60px;
   height: 60px;
+  cursor: pointer;
 
   @media (max-width: 450px) {
     width: 48px;
@@ -34,7 +37,11 @@ const Gnb: FC<GnbProps> = ({
 }) => {
   return(
     <StyledWrapper>
-      <StyledLogoBox imageUrl={logo}/>
+      <Link href="/">
+        <a>
+        <StyledLogoBox imageUrl={logo}/>
+        </a>
+      </Link>
     </StyledWrapper>
   )
 }
