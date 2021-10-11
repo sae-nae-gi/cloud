@@ -2,9 +2,12 @@ import React, { FC, useEffect } from "react";
 import styled from "@emotion/styled";
 import logo from "../asset/logo.png";
 import Link from "next/link"
+import { Profile } from "../stores/ProfileStore";
+import { ProfileBadge } from "./badge";
 
 const StyledWrapper = styled.nav`
   display: flex;
+  position: relative;
   align-items: center;
   background-color: ${({theme}) => theme.colors.gnb};
   height: 92px;
@@ -15,6 +18,12 @@ const StyledWrapper = styled.nav`
     height: 60px;
     padding: 0 15px;
   }
+`;
+
+const StyledProfileBadge = styled(ProfileBadge)`
+  position: absolute;
+  top: 16px;
+  right: 40px;
 `;
 
 const StyledLogoBox = styled.div<{
@@ -33,7 +42,7 @@ const StyledLogoBox = styled.div<{
 `;
 
 const Gnb: FC<GnbProps> = ({
-  
+  profile,  
 }) => {
   return(
     <StyledWrapper>
@@ -42,12 +51,14 @@ const Gnb: FC<GnbProps> = ({
         <StyledLogoBox imageUrl={logo}/>
         </a>
       </Link>
+      {profile.userName && <StyledProfileBadge imageUrl={profile.image}/>}
     </StyledWrapper>
   )
 }
 
 interface GnbProps {
-  
+  profile: Profile,
 }
+
 
 export default Gnb;

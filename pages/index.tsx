@@ -1,8 +1,11 @@
 import { useState } from "react";
+import { useDispatch } from "react-redux";
 import { NextPage} from "next";
 import styled from "@emotion/styled";
 import { nanoid } from "nanoid";
 import { useRouter } from "next/router";
+import { actionCreator as profileActionCreator } from "../src/stores/ProfileStore";
+import { getRandomImage } from "../src/utils";
 
 const StyledArticle = styled.article`
   display: flex;
@@ -51,6 +54,7 @@ const StyledSubmitButton = styled.button`
 const IndexPage: NextPage<IndexPageProps> = () => {
   const [name, setName] = useState("");
   const router = useRouter();
+  const dispatch = useDispatch();
 
   const moveToRoom = () => {
     router.push(`/meet/${nanoid()}`)
@@ -58,8 +62,12 @@ const IndexPage: NextPage<IndexPageProps> = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    dispatch(profileActionCreator("@profile/login", {
+      userName: name,
+      image: getRandomImage(),
+    }))
+    localStorage.setItem("cloud_user_name", name);
     moveToRoom();
-    
   }
 
   const handleChange = (e) => {
