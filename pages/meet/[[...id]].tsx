@@ -6,7 +6,8 @@ import ChatBox from "../../src/components/chat/ChatBox";
 import BottomBar from "../../src/components/bottomBar";
 import { useSocket } from "../../src/hooks";
 import { Spinner } from "../../src/components/loading";
-
+import ChatCard from "../../src/components/chat/ChatCard";
+import { nanoid } from "nanoid";
 const StyledWrapper = styled.div`
   display: flex;
   height: 100%;
@@ -34,30 +35,46 @@ const StyledSpinner = styled(Spinner)`
 `;
 
 const MeetPage: NextPage<WatchPageProps> = ({
-
+  serverRoomId,
 }) => {
   const {query: {id}} = useRouter();
   const socket = useSocket();
   const [disabled,setDisabled] = useState(true);
+  const roomId = serverRoomId || id && id.length > 0 ? id[0] : ""; 
   
   const handleSubmitChat = (input: string) => {
-    socket.emit({ type: `@client/${id[0]}`,payload: input})
+    socket.emit({ type: `@client/${roomId}`,payload: input})
   }
   
   useEffect(() => {
-    socket.onListen("@joinedRoom", (message) => {
-      setDisabled(false);
-      console.log({message});
-    });
+    if(roomId.length){
+      const dummyUserId = nanoid(5);
+      socket.onListen("@joinedRoom", (data: JoinRoomPayload) => {
+        console.warn("current room users: ", data.roomUsers)
+        setDisabled(false);
+        socket.onListen(`@server/${roomId}`, (message) => {
+          console.log({message});
+        })
+      });
 
-    const roomId = (id || []).length && id[0];
-    socket.emit({type: "@joinRoom", payload: roomId})
-    
-    return () => {
-      socket.emit({type: "@leaveRoom", payload: roomId});
-      setDisabled(true);
+      socket.onListen("@leftRoom", (data: JoinRoomPayload) => {
+        console.warn("current room users: ", data.roomUsers)
+      })
+
+      socket.emit({type: "@joinRoom", payload: {
+        roomId,
+        userId: dummyUserId,
+      }})
+      
+      return () => {
+        socket.emit({type: "@leaveRoom", payload: {
+          roomId,
+          userId: dummyUserId,
+        }});
+        setDisabled(true);
+      }
     }
-  },[]);
+  },[roomId]);
 
   return(
     <StyledWrapper>
@@ -73,8 +90,27 @@ const MeetPage: NextPage<WatchPageProps> = ({
   )
 };
 
-interface WatchPageProps {
+export const getServerSideProps = async ({query}) => {
+  return({
+    props: {
+      serverRoomId: (query.id && query.id.length) ? query.id[0]: "",
+    }
+  })
+}
+
+export interface EmitChatPayload {
+  user: string;
   
+}
+
+export interface JoinRoomPayload {
+  roomId: string,
+  userId: string,
+  roomUsers: any[];
+}
+
+interface WatchPageProps {
+  serverRoomId: string;
 }
 
 export default MeetPage;

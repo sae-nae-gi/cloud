@@ -60,7 +60,6 @@ const Spinner = ({...rest}) => {
       <StyledSpinner/>
     </StyledWrapper>
   )
-
 }
 
 export interface SpinnerProps extends React.HTMLAttributes<HTMLDivElement>{

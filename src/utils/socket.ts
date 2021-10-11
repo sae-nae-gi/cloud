@@ -7,7 +7,7 @@ type MessageType = "@sendMessage"
 
 interface MessageAction {
   type: MessageType | string;
-  payload: string;
+  payload: any;
 }
 
 class CloudSocket {
