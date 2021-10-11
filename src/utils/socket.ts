@@ -1,5 +1,15 @@
 import {io, Socket} from "socket.io-client";
 
+type MessageType = "@sendMessage"
+  | "@joinRoom" 
+  | "@joinedRoom"
+  | "@leaveRoom";
+
+interface MessageAction {
+  type: MessageType | string;
+  payload: any;
+}
+
 class CloudSocket {
   socket?: Socket;
   private url: string;
@@ -28,6 +38,12 @@ class CloudSocket {
     }
   }
 
+  onListen(type: MessageAction["type"], cb: (message: any) => void) {
+    if(this.socket){
+      this.socket.on(type, cb)
+    }
+  }
+
   connect() {
     this.socket.on("connect", () => {
       console.warn("socket Connected");
@@ -39,6 +55,16 @@ class CloudSocket {
       this.reconnect();
     })
   }
+
+  emit(action: MessageAction) {
+    if(this.socket){
+      const {type, payload} = action;
+      if(type) {
+        this.socket.emit(type,payload);
+      }
+    }
+  }
+
 }
 
 export default CloudSocket;

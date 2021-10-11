@@ -1,10 +1,13 @@
 import { NextPage } from "next";
-import { useEffect } from "react";
+import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
 import styled from "@emotion/styled";
 import ChatBox from "../../src/components/chat/ChatBox";
 import BottomBar from "../../src/components/bottomBar";
 import { useSocket } from "../../src/hooks";
-
+import { Spinner } from "../../src/components/loading";
+import ChatCard from "../../src/components/chat/ChatCard";
+import { nanoid } from "nanoid";
 const StyledWrapper = styled.div`
   display: flex;
   height: 100%;
@@ -17,27 +20,61 @@ const StyledVideoArticle = styled.article`
 `;
 
 const StyledChatArticle = styled.article`
+  position: relative;
   background-color: ${({theme}) => theme.colors.chatBar};
   width: 300px;
   height: 100%;
   border-left: 1px solid ${({theme}) => theme.colors.border};
 `
 
-const MeetPage: NextPage<WatchPageProps> = ({
+const StyledSpinner = styled(Spinner)`
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+`;
 
+const MeetPage: NextPage<WatchPageProps> = ({
+  serverRoomId,
 }) => {
+  const {query: {id}} = useRouter();
   const socket = useSocket();
-  const handleSubmitChat = () => {
-    
+  const [disabled,setDisabled] = useState(true);
+  const roomId = serverRoomId || id && id.length > 0 ? id[0] : ""; 
+  
+  const handleSubmitChat = (input: string) => {
+    socket.emit({ type: `@client/${roomId}`,payload: input})
   }
   
   useEffect(() => {
-    
+    if(roomId.length){
+      const dummyUserId = nanoid(5);
+      socket.onListen("@joinedRoom", (data: JoinRoomPayload) => {
+        console.warn("current room users: ", data.roomUsers)
+        setDisabled(false);
+        socket.onListen(`@server/${roomId}`, (message) => {
+          console.log({message});
+        })
+      });
 
-    return () => {
+      socket.onListen("@leftRoom", (data: JoinRoomPayload) => {
+        console.warn("current room users: ", data.roomUsers)
+      })
+
+      socket.emit({type: "@joinRoom", payload: {
+        roomId,
+        userId: dummyUserId,
+      }})
       
+      return () => {
+        socket.emit({type: "@leaveRoom", payload: {
+          roomId,
+          userId: dummyUserId,
+        }});
+        setDisabled(true);
+      }
     }
-  },[]);
+  },[roomId]);
 
   return(
     <StyledWrapper>
@@ -46,14 +83,34 @@ const MeetPage: NextPage<WatchPageProps> = ({
         <BottomBar/>
       </StyledVideoArticle>
       <StyledChatArticle>
-        <ChatBox onSubmitChat={handleSubmitChat}/>
+        {disabled && <StyledSpinner/>}
+        <ChatBox onSubmitChat={handleSubmitChat} disabled={disabled}/>
       </StyledChatArticle>
     </StyledWrapper>
   )
 };
 
-interface WatchPageProps {
+export const getServerSideProps = async ({query}) => {
+  return({
+    props: {
+      serverRoomId: (query.id && query.id.length) ? query.id[0]: "",
+    }
+  })
+}
+
+export interface EmitChatPayload {
+  user: string;
   
+}
+
+export interface JoinRoomPayload {
+  roomId: string,
+  userId: string,
+  roomUsers: any[];
+}
+
+interface WatchPageProps {
+  serverRoomId: string;
 }
 
 export default MeetPage;
