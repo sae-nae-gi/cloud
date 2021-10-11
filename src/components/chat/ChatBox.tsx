@@ -39,7 +39,10 @@ const StyledButton = styled.button`
   }
 `;
 
-const ChatBox: React.FC<ChatBoxProps> = ({ onSubmitChat}) => {
+const ChatBox: React.FC<ChatBoxProps> = ({ 
+  onSubmitChat,
+  disabled,
+}) => {
   const [input, setInput] = useState<string>("");
 
   const handleChange = (e) => {
@@ -49,8 +52,11 @@ const ChatBox: React.FC<ChatBoxProps> = ({ onSubmitChat}) => {
 
   const handleSubmit = throttle((e) => {
     e.preventDefault();
-    setInput("");
+    if(disabled) {
+      return false;
+    }
     onSubmitChat(input);
+    setInput("");
   },150);
 
   return(
@@ -58,8 +64,12 @@ const ChatBox: React.FC<ChatBoxProps> = ({ onSubmitChat}) => {
       <StyledChatView></StyledChatView>
       <StyledChatInputArticle>
         <form onSubmit={handleSubmit}>
-        <ChatInput value={input} onChange={handleChange}/>
-        <StyledButton type="submit">입력</StyledButton>
+        <ChatInput 
+          value={input} 
+          onChange={handleChange}
+          disabled={disabled}
+        />
+        <StyledButton type="submit" disabled={disabled}>입력</StyledButton>
         </form>
       </StyledChatInputArticle>
     </StyledSection>
@@ -68,6 +78,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({ onSubmitChat}) => {
 
 interface ChatBoxProps {
   onSubmitChat: (value: string) => void;
+  disabled?: boolean;
 }
 
 export default ChatBox;

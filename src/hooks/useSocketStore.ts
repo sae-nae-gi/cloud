@@ -1,8 +1,9 @@
 import { useContext } from "react";
 import { socketContext } from "../stores/SocketStore";
+import CloudSocket from "../utils/socket";
 
 const useSocket = () => {
-  const socket = useContext(socketContext);
+  const socket = useContext<CloudSocket>(socketContext);
 
   if(!socket){
     throw Error("Socket Context is not occur");
