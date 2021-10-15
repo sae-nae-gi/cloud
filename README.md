@@ -11,6 +11,13 @@ Use the package manager yarn to install dependencies in Cloud
 yarn install
 ```
 
+## Stack
+[v] Next.js
+[v] Socket.io
+[v] redux
+[v] redux-saga
+
+
 ## Usage
 Before start app, you need api server to provide socket connection.
 You can build your server on your own, or just clone and use [Cloud-server](https://github.com/sae-nae-gi/cloud-server)
