@@ -1,23 +1,18 @@
-export interface Profile {
-  userId: string;
+import { Profile } from "./ProfileStore";
+
+export interface RoomProfile extends Pick<Profile, "userName"> {
   onView: string;
   onMute: string;
-}
-
-export interface Message extends Pick<Profile, "userId"> {
-  chat: string;
 }
 
 export interface RoomState {
   roomId: string;
   users: Profile[];
-  message: Message[];
 }
 
 const initialState: RoomState = {
   roomId: "",
   users: [],
-  message: [],
 } 
 
 export interface RoomActionPayload extends RoomState {
@@ -67,7 +62,7 @@ export const roomReducer = (state = initialState, action: Partial<Omit<RoomStore
     case ACTION_RESET_ROOM:
       return initialState;
     default: 
-      return initialState;
+      return state;
   }
 }
 
