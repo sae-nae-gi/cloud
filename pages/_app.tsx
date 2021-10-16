@@ -9,9 +9,9 @@ import emotionReset from "emotion-reset"
 import theme from "../src/theme";
 import Layout from "../src/components/layout";
 
-const App:NextPage<AppProps> = ({Component, pageProps}) => {
-  const socket = new Socket();
+export const socket = new Socket();
 
+const App:NextPage<AppProps> = ({Component, pageProps}) => {
   return (
     <ThemeProvider theme={theme}>
       <Global styles={css`

@@ -1,4 +1,5 @@
 import {io, Socket} from "socket.io-client";
+import { ChatAction } from "../stores";
 
 type MessageType = "@sendMessage"
   | "@joinRoom" 
@@ -38,7 +39,7 @@ class CloudSocket {
     }
   }
 
-  onListen(type: MessageAction["type"], cb: (message: any) => void) {
+  onListen(type: MessageAction["type"] | ChatAction["type"], cb: (message: any) => void) {
     if(this.socket){
       this.socket.on(type, cb)
     }

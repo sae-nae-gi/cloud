@@ -1,5 +1,7 @@
 import { Profile } from ".";
 
+// 채팅을 기다림
+const ACTION_WAIT_CHAT = "@chat/wait";
 // 메시지를 보냄
 const ACTION_SEND_CHAT = "@chat/send";
 // 메시지를 업데이트 함
@@ -12,6 +14,7 @@ const ACTION_LEAVE_CHAT = "@chat/leave";
 const ACTION_RESET_CHAT = "@chat/reset";
 
 export {
+  ACTION_WAIT_CHAT,
   ACTION_SEND_CHAT,
   ACTION_UPDATE_CHAT,
   ACTION_JOIN_CHAT,
@@ -37,7 +40,7 @@ export interface ChatState {
 }
 
 
-export const chatActionCreator = (type: ChatAction["type"], payload: ChatState[]) => ({
+export const chatActionCreator = (type: ChatAction["type"], payload?: ChatState[]) => ({
   type,
   payload,
 })
@@ -54,7 +57,7 @@ export const chatReducer = (prevState: ChatState = initialState, action: ChatAct
     case ACTION_LEAVE_CHAT:
       return {
         ...prevState,
-        chat: prevState.chat.concat(action.payload.chat),
+        chat: prevState.chat.concat(action.payload?.chat),
       }
     case ACTION_RESET_CHAT:
       return initialState;
