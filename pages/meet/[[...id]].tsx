@@ -7,7 +7,9 @@ import BottomBar from "../../src/components/bottomBar";
 import { useSocket } from "../../src/hooks";
 import { Spinner } from "../../src/components/loading";
 import ChatCard from "../../src/components/chat/ChatCard";
+import { ACTION_WAIT_CHAT } from "../../src/stores";
 import { nanoid } from "nanoid";
+
 const StyledWrapper = styled.div`
   display: flex;
   height: 100%;
