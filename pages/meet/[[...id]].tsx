@@ -1,13 +1,13 @@
 import { NextPage } from "next";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
 import styled from "@emotion/styled";
 import ChatBox from "../../src/components/chat/ChatBox";
 import BottomBar from "../../src/components/bottomBar";
-import { useSocket } from "../../src/hooks";
+import { useSocket, useStores } from "../../src/hooks";
 import { Spinner } from "../../src/components/loading";
-import ChatCard from "../../src/components/chat/ChatCard";
-import { ACTION_WAIT_CHAT } from "../../src/stores";
+import { ACTION_RESET_CHAT, ACTION_SEND_CHAT, ACTION_WAIT_CHAT, chatActionCreator } from "../../src/stores";
 import { nanoid } from "nanoid";
 
 const StyledWrapper = styled.div`
@@ -42,21 +42,21 @@ const MeetPage: NextPage<WatchPageProps> = ({
   const {query: {id}} = useRouter();
   const socket = useSocket();
   const [disabled,setDisabled] = useState(true);
+  const dispatch = useDispatch();
   const roomId = serverRoomId || id && id.length > 0 ? id[0] : ""; 
-  
+  const {chat: chatState} = useStores();
   const handleSubmitChat = (input: string) => {
     socket.emit({ type: `@client/${roomId}`,payload: input})
+    socket.emit({type: `@client/${ACTION_SEND_CHAT}`, payload: input})
   }
   
   useEffect(() => {
     if(roomId.length){
       const dummyUserId = nanoid(5);
       socket.onListen("@joinedRoom", (data: JoinRoomPayload) => {
+        dispatch(chatActionCreator(ACTION_WAIT_CHAT));
         console.warn("current room users: ", data.roomUsers)
         setDisabled(false);
-        socket.onListen(`@server/${roomId}`, (message) => {
-          console.log({message});
-        })
       });
 
       socket.onListen("@leftRoom", (data: JoinRoomPayload) => {
@@ -73,6 +73,7 @@ const MeetPage: NextPage<WatchPageProps> = ({
           roomId,
           userId: dummyUserId,
         }});
+        dispatch(chatActionCreator(ACTION_RESET_CHAT))
         setDisabled(true);
       }
     }
@@ -86,7 +87,11 @@ const MeetPage: NextPage<WatchPageProps> = ({
       </StyledVideoArticle>
       <StyledChatArticle>
         {disabled && <StyledSpinner/>}
-        <ChatBox onSubmitChat={handleSubmitChat} disabled={disabled}/>
+        <ChatBox 
+          onSubmitChat={handleSubmitChat} 
+          chats={chatState.chat}
+          disabled={disabled}
+        />
       </StyledChatArticle>
     </StyledWrapper>
   )

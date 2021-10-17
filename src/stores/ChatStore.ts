@@ -19,6 +19,7 @@ export {
   ACTION_UPDATE_CHAT,
   ACTION_JOIN_CHAT,
   ACTION_LEAVE_CHAT,
+  ACTION_RESET_CHAT,
 }
 
 export interface ChatAction {
@@ -26,8 +27,9 @@ export interface ChatAction {
     | typeof ACTION_UPDATE_CHAT
     | typeof ACTION_JOIN_CHAT
     | typeof ACTION_LEAVE_CHAT
-    | typeof ACTION_RESET_CHAT;
-  payload: ChatState;
+    | typeof ACTION_RESET_CHAT
+    | typeof ACTION_WAIT_CHAT;
+  payload: Chat & Pick<ChatState,"roomId">;
 }
 
 export interface Chat extends Pick<Profile, "userName"> {
@@ -40,7 +42,7 @@ export interface ChatState {
 }
 
 
-export const chatActionCreator = (type: ChatAction["type"], payload?: ChatState[]) => ({
+export const chatActionCreator = (type: ChatAction["type"], payload?: Chat) => ({
   type,
   payload,
 })
@@ -57,7 +59,10 @@ export const chatReducer = (prevState: ChatState = initialState, action: ChatAct
     case ACTION_LEAVE_CHAT:
       return {
         ...prevState,
-        chat: prevState.chat.concat(action.payload?.chat),
+        chat: prevState.chat.concat({
+          userName: action.payload?.userName,
+          message: action.payload?.message,
+        }),
       }
     case ACTION_RESET_CHAT:
       return initialState;

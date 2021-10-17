@@ -1,15 +1,22 @@
 import React, { FC } from "react";
 import styled from "@emotion/styled";
+import { Chat } from "../../stores";
 
 const StyledWrapper = styled.div`
+  word-break: break-all;
   padding: 4px 8px;
 `;
 
-const StyledName = styled.div`
+const StyledName = styled.div<{
+  color?: string;
+}>`
+  display: inline-block;
+  color: ${({color}) => color ? color : "#fff"};
   font-size: 16px;
   font-weight: 700;
   word-break: break-all;
   line-height: 16px;
+  margin-right: 12px;
 `;
 
 const StyledSpan = styled.span`
@@ -52,21 +59,20 @@ const StyledSpan = styled.span`
     --color-brand-accent-highlighter: #f5f500;
  */
 const ChatCard: FC<ChatCardProps> = ({
-  name,
+  color,
+  userName,
   message,
 }) => {
   return(
     <StyledWrapper>
-      <StyledName>{name}:</StyledName>
+      <StyledName color={color}>{userName}: </StyledName>
       <StyledSpan>{message}</StyledSpan>
     </StyledWrapper>
   )
 }
 
-export interface ChatCardProps {
-  color: string;
-  name: string;
-  message: string;
+export interface ChatCardProps extends Chat{
+  color?: string;
 }
 
 export default ChatCard;

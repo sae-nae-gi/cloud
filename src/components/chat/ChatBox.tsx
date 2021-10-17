@@ -2,6 +2,8 @@ import React, {useState} from "react";
 import styled from "@emotion/styled";
 import ChatInput from "./ChatInput";
 import throttle from "lodash/throttle";
+import { ChatState } from "../../stores";
+import ChatCard from "./ChatCard";
 
 const StyledSection = styled.section`
   background-color: ${({theme}) => theme.colors.chatBar};
@@ -41,6 +43,7 @@ const StyledButton = styled.button`
 
 const ChatBox: React.FC<ChatBoxProps> = ({ 
   onSubmitChat,
+  chats,
   disabled,
 }) => {
   const [input, setInput] = useState<string>("");
@@ -61,7 +64,9 @@ const ChatBox: React.FC<ChatBoxProps> = ({
 
   return(
     <StyledSection>
-      <StyledChatView></StyledChatView>
+      <StyledChatView>
+        {chats.map((value,index) => <ChatCard key={`idx$::${index}`} {...value}/>)}
+      </StyledChatView>
       <StyledChatInputArticle>
         <form onSubmit={handleSubmit}>
         <ChatInput 
@@ -79,6 +84,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({
 interface ChatBoxProps {
   onSubmitChat: (value: string) => void;
   disabled?: boolean;
+  chats: ChatState["chat"];
 }
 
 export default ChatBox;
