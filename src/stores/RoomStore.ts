@@ -42,7 +42,7 @@ export {
   ACTION_RESET_ROOM
 }
 
-export const roomReducer = (state = initialState, action: Partial<Omit<RoomStoreAction, "type">> & Pick<RoomStoreAction, "type">) => {
+export const roomReducer = (state: RoomState = initialState, action: Partial<Omit<RoomStoreAction, "type">> & Pick<RoomStoreAction, "type">) => {
   switch(action.type) {
     case ACTION_JOIN_ROOM:
       return {

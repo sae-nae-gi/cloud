@@ -3,6 +3,6 @@ import chatSaga from "./chatSaga";
 
 export const rootSaga = function * (){
   yield all([
-    chatSaga,
+    chatSaga(),
   ])
 }
