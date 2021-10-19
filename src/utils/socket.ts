@@ -11,7 +11,7 @@ interface MessageAction {
   payload: any;
 }
 
-class CloudSocket {
+class CloudSocket implements CloudSocketInterface {
   socket?: Socket;
   private url: string;
   private forceDisconnect?: boolean;
@@ -35,6 +35,7 @@ class CloudSocket {
 
   reconnect(){
     if(this.socket && this.socket.disconnected && !this.forceDisconnect){
+      console.log("hi")
       this.socket.connect();
     }
   }
@@ -42,6 +43,12 @@ class CloudSocket {
   onListen(type: MessageAction["type"] | ChatAction["type"], cb: (message: any) => void) {
     if(this.socket){
       this.socket.on(type, cb)
+    }
+  }
+
+  onceListen(type, cb) {
+    if(this.socket){
+      this.socket.once(type, cb)
     }
   }
 
@@ -66,6 +73,12 @@ class CloudSocket {
     }
   }
 
+}
+
+export interface CloudSocketInterface {
+  connect: () => void,
+  onListen: (type: MessageAction["type"] | ChatAction["type"], cb: (message: any) => void) => void;
+  onceListen: (type: MessageAction["type"] | ChatAction["type"], cb: (message: any) => void) => void;
 }
 
 export default CloudSocket;
