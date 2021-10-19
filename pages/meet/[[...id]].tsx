@@ -51,6 +51,7 @@ const MeetPage: NextPage<WatchPageProps> = ({
   }
   
   useEffect(() => {
+    console.log("roomId: ", roomId)
     if(roomId.length){
       const dummyUserId = nanoid(5);
       socket.onListen("@joinedRoom", (data: JoinRoomPayload) => {
@@ -80,7 +81,7 @@ const MeetPage: NextPage<WatchPageProps> = ({
         setDisabled(true);
       }
     }
-  },[roomId]);
+  },[]);
 
   return(
     <StyledWrapper>
