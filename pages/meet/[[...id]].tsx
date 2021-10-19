@@ -51,13 +51,17 @@ const MeetPage: NextPage<WatchPageProps> = ({
   }
   
   useEffect(() => {
+    console.log("roomId: ", roomId)
     if(roomId.length){
       const dummyUserId = nanoid(5);
       socket.onListen("@joinedRoom", (data: JoinRoomPayload) => {
-        dispatch(chatActionCreator(ACTION_WAIT_CHAT));
         console.warn("current room users: ", data.roomUsers)
-        setDisabled(false);
       });
+      
+      socket.onceListen("@joinedRoom", () => {
+        dispatch(chatActionCreator(ACTION_WAIT_CHAT));
+        setDisabled(false);
+      })
 
       socket.onListen("@leftRoom", (data: JoinRoomPayload) => {
         console.warn("current room users: ", data.roomUsers)
@@ -77,7 +81,7 @@ const MeetPage: NextPage<WatchPageProps> = ({
         setDisabled(true);
       }
     }
-  },[roomId]);
+  },[]);
 
   return(
     <StyledWrapper>
