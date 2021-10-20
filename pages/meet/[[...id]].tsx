@@ -7,8 +7,9 @@ import ChatBox from "../../src/components/chat/ChatBox";
 import BottomBar from "../../src/components/bottomBar";
 import { useSocket, useStores } from "../../src/hooks";
 import { Spinner } from "../../src/components/loading";
-import { ACTION_RESET_CHAT, ACTION_SEND_CHAT, ACTION_WAIT_CHAT, chatActionCreator } from "../../src/stores";
+import { ACTION_JOIN_ROOM, ACTION_LEAVE_ROOM, ACTION_RESET_CHAT, ACTION_RESET_ROOM, ACTION_SEND_CHAT, ACTION_WAIT_CHAT, ACTION_WAIT_JOIN_ROOM, ACTION_WAIT_LEAVE_ROOM, chatActionCreator, roomActionCreator, RoomState } from "../../src/stores";
 import { nanoid } from "nanoid";
+import VideoRoom from "../../src/components/video/VideoRoom";
 
 const StyledWrapper = styled.div`
   display: flex;
@@ -36,6 +37,9 @@ const StyledSpinner = styled(Spinner)`
   transform: translate(-50%, -50%);
 `;
 
+const CLIENT_PREFIX = "@client/";
+const SERVER_PREFIX = "@server/";
+
 const MeetPage: NextPage<WatchPageProps> = ({
   serverRoomId,
 }) => {
@@ -44,48 +48,67 @@ const MeetPage: NextPage<WatchPageProps> = ({
   const [disabled,setDisabled] = useState(true);
   const dispatch = useDispatch();
   const roomId = serverRoomId || id && id.length > 0 ? id[0] : ""; 
-  const {chat: chatState} = useStores();
-  const handleSubmitChat = (input: string) => {
-    socket.emit({ type: `@client/${roomId}`,payload: input})
-    socket.emit({type: `@client/${ACTION_SEND_CHAT}`, payload: input})
-  }
+  const {chat: chatState, room: roomState} = useStores();
   
+  const handleSubmitChat = (input: string) => {
+    // socket.emit({ type: `${CLIENT_PREFIX}${roomId}`,payload: input})
+    socket.emit({type: `${CLIENT_PREFIX}${ACTION_SEND_CHAT}`, payload: input})
+  }
+
+  const handleConnectClose = () => {
+    resetChatStore();
+    resetRoomStore();
+    // 소켓 연결을 끊기 때문에 다음 연결까지 비활성화 해둔다.
+    setDisabled(true);
+  }
+
+  const resetChatStore = () => {
+    dispatch(chatActionCreator(ACTION_RESET_CHAT));
+  }
+
+  const resetRoomStore = () => {
+    dispatch(roomActionCreator(ACTION_RESET_ROOM));
+  }
+
   useEffect(() => {
-    console.log("roomId: ", roomId)
     if(roomId.length){
       const dummyUserId = nanoid(5);
-      socket.onListen("@joinedRoom", (data: JoinRoomPayload) => {
-        console.warn("current room users: ", data.roomUsers)
-      });
       
-      socket.onceListen("@joinedRoom", () => {
+      socket.onceListen(`${SERVER_PREFIX}${ACTION_JOIN_ROOM}`, (message: RoomState) => {
+        dispatch(roomActionCreator(ACTION_JOIN_ROOM, message));
         dispatch(chatActionCreator(ACTION_WAIT_CHAT));
+        dispatch(roomActionCreator(ACTION_WAIT_JOIN_ROOM));
+        dispatch(roomActionCreator(ACTION_WAIT_LEAVE_ROOM));
         setDisabled(false);
       })
 
-      socket.onListen("@leftRoom", (data: JoinRoomPayload) => {
-        console.warn("current room users: ", data.roomUsers)
-      })
+      // socket.onceListen(`${SERVER_PREFIX}${ACTION_LEAVE_ROOM}`, (data: JoinRoomPayload) => {
+      //   console.warn("current room users: ", data.roomUsers)
+      // })
 
-      socket.emit({type: "@joinRoom", payload: {
+      socket.emit({type: `${CLIENT_PREFIX}${ACTION_JOIN_ROOM}`, payload: {
         roomId,
-        userId: dummyUserId,
+        userName: dummyUserId,  
       }})
       
       return () => {
-        socket.emit({type: "@leaveRoom", payload: {
+        socket.emit({type: `${CLIENT_PREFIX}${ACTION_LEAVE_ROOM}`, payload: {
           roomId,
-          userId: dummyUserId,
+          userName: dummyUserId,
         }});
-        dispatch(chatActionCreator(ACTION_RESET_CHAT))
-        setDisabled(true);
+        handleConnectClose();
       }
     }
   },[]);
+  
+  
+
+  console.log({roomState})
 
   return(
     <StyledWrapper>
       <StyledVideoArticle>
+        <VideoRoom/>
         {/* @ts-expect-error */}
         <BottomBar/>
       </StyledVideoArticle>
