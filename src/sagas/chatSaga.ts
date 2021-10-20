@@ -1,6 +1,6 @@
-import {call, takeEvery, put, take} from "redux-saga/effects";
-import { eventChannel } from "redux-saga";
-import { socket as cloudSocket, socket } from "../../pages/_app";
+import {call, takeEvery, put, take, fork} from "redux-saga/effects";
+import { EventChannel, eventChannel } from "redux-saga";
+import { socket as cloudSocket } from "../../pages/_app";
 import {
   RoomState,
   ACTION_WAIT_CHAT,
@@ -10,6 +10,7 @@ import {
   ACTION_LEAVE_CHAT,
   Chat,
   chatActionCreator,
+  ACTION_RESET_CHAT,
 } from "../stores"
 
 const createSocketChannel = (eventType: typeof ACTION_SEND_CHAT) => {
@@ -20,8 +21,8 @@ const createSocketChannel = (eventType: typeof ACTION_SEND_CHAT) => {
         emit(message);
       }
 
-      const SERVER_PREFIX = "@server/"
-      cloudSocket.onListen(`${SERVER_PREFIX}${eventType}`, (response: Chat &RoomState["roomId"]) => {
+      const SERVER_PREFIX = "@server/";
+      cloudSocket.onListen(`${SERVER_PREFIX}${eventType}`, (response: Chat & RoomState["roomId"]) => {
         emitter(response);
       });
 
@@ -32,11 +33,20 @@ const createSocketChannel = (eventType: typeof ACTION_SEND_CHAT) => {
   )
 }
 
+function * closeSocketChannel(socketChannel: EventChannel<any>) {
+  while(true){
+    yield take(ACTION_RESET_CHAT);
+    socketChannel.close();
+  }
+}
+
 function * waitChat() {
   let channel;
 
   try {
     channel = yield call(createSocketChannel, ACTION_SEND_CHAT);
+    yield fork(closeSocketChannel, channel);
+  
     while(true){
       const chatResponse = yield take(channel);
       yield onSendChatResponse(chatResponse);
