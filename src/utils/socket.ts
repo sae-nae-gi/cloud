@@ -35,7 +35,6 @@ class CloudSocket implements CloudSocketInterface {
 
   reconnect(){
     if(this.socket && this.socket.disconnected && !this.forceDisconnect){
-      console.log("hi")
       this.socket.connect();
     }
   }

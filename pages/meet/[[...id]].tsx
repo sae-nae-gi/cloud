@@ -73,7 +73,7 @@ const MeetPage: NextPage<WatchPageProps> = ({
   useEffect(() => {
     if(roomId.length){
       const dummyUserId = nanoid(5);
-      
+    
       socket.onceListen(`${SERVER_PREFIX}${ACTION_JOIN_ROOM}`, (message: RoomState) => {
         dispatch(roomActionCreator(ACTION_JOIN_ROOM, message));
         dispatch(chatActionCreator(ACTION_WAIT_CHAT));
@@ -81,10 +81,6 @@ const MeetPage: NextPage<WatchPageProps> = ({
         dispatch(roomActionCreator(ACTION_WAIT_LEAVE_ROOM));
         setDisabled(false);
       })
-
-      // socket.onceListen(`${SERVER_PREFIX}${ACTION_LEAVE_ROOM}`, (data: JoinRoomPayload) => {
-      //   console.warn("current room users: ", data.roomUsers)
-      // })
 
       socket.emit({type: `${CLIENT_PREFIX}${ACTION_JOIN_ROOM}`, payload: {
         roomId,
@@ -100,10 +96,6 @@ const MeetPage: NextPage<WatchPageProps> = ({
       }
     }
   },[]);
-  
-  
-
-  console.log({roomState})
 
   return(
     <StyledWrapper>
