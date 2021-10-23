@@ -1,11 +1,13 @@
 import { NextPage } from "next";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, createRef, useRef } from "react";
 import { useDispatch } from "react-redux";
 import styled from "@emotion/styled";
 import ChatBox from "../../src/components/chat/ChatBox";
+import Video from "../../src/components/video/Video";
 import BottomBar from "../../src/components/bottomBar";
 import { useSocket, useStores } from "../../src/hooks";
+import { Media } from "../../src/utils";
 import { Spinner } from "../../src/components/loading";
 import { ACTION_JOIN_ROOM, ACTION_LEAVE_ROOM, ACTION_RESET_CHAT, ACTION_RESET_ROOM, ACTION_SEND_CHAT, ACTION_WAIT_CHAT, ACTION_WAIT_JOIN_ROOM, ACTION_WAIT_LEAVE_ROOM, chatActionCreator, roomActionCreator, RoomState } from "../../src/stores";
 import { nanoid } from "nanoid";
@@ -40,15 +42,19 @@ const StyledSpinner = styled(Spinner)`
 const CLIENT_PREFIX = "@client/";
 const SERVER_PREFIX = "@server/";
 
+const media = new Media();
+
 const MeetPage: NextPage<WatchPageProps> = ({
   serverRoomId,
 }) => {
   const {query: {id}} = useRouter();
   const socket = useSocket();
   const [disabled,setDisabled] = useState(true);
+  const myVideoIdRef = useRef<string>(nanoid());
+  const myVideoRef = createRef<HTMLVideoElement>();
   const dispatch = useDispatch();
   const roomId = serverRoomId || id && id.length > 0 ? id[0] : ""; 
-  const {chat: chatState, room: roomState} = useStores();
+  const {chat: chatState, room: roomState, profile: profileState} = useStores();
   
   const handleSubmitChat = (input: string) => {
     // socket.emit({ type: `${CLIENT_PREFIX}${roomId}`,payload: input})
@@ -69,6 +75,18 @@ const MeetPage: NextPage<WatchPageProps> = ({
   const resetRoomStore = () => {
     dispatch(roomActionCreator(ACTION_RESET_ROOM));
   }
+
+  const handleMediaCallback = (stream: MediaStream) => {
+    if(myVideoRef && myVideoRef.current){
+      myVideoRef.current.srcObject = stream;
+    }
+  }
+
+  useEffect(() => {
+    if(myVideoRef) {
+      media.getMedia(handleMediaCallback);
+    }
+  },[myVideoRef])
 
   useEffect(() => {
     if(roomId.length){
@@ -100,7 +118,12 @@ const MeetPage: NextPage<WatchPageProps> = ({
   return(
     <StyledWrapper>
       <StyledVideoArticle>
-        <VideoRoom/>
+        <VideoRoom>
+          <Video 
+            data-video-id={myVideoIdRef.current}
+            ref={myVideoRef}
+          />
+        </VideoRoom>
         {/* @ts-expect-error */}
         <BottomBar/>
       </StyledVideoArticle>
