@@ -7,11 +7,13 @@ import ChatBox from "../../src/components/chat/ChatBox";
 import Video from "../../src/components/video/Video";
 import BottomBar from "../../src/components/bottomBar";
 import { useSocket, useStores } from "../../src/hooks";
-import { Media } from "../../src/utils";
+import { Media, SignalingChannel } from "../../src/utils";
 import { Spinner } from "../../src/components/loading";
 import { ACTION_JOIN_ROOM, ACTION_LEAVE_ROOM, ACTION_RESET_CHAT, ACTION_RESET_ROOM, ACTION_SEND_CHAT, ACTION_WAIT_CHAT, ACTION_WAIT_JOIN_ROOM, ACTION_WAIT_LEAVE_ROOM, chatActionCreator, roomActionCreator, RoomState } from "../../src/stores";
 import { nanoid } from "nanoid";
 import VideoRoom from "../../src/components/video/VideoRoom";
+import { PeerConnection, Channel } from "../../src/utils";
+import { setEmitFlags } from "typescript";
 
 const StyledWrapper = styled.div`
   display: flex;
@@ -26,10 +28,10 @@ const StyledVideoArticle = styled.article`
 
 const StyledChatArticle = styled.article`
   position: relative;
-  background-color: ${({theme}) => theme.colors.chatBar};
+  background-color: ${({ theme }) => theme.colors.chatBar};
   width: 300px;
   height: 100%;
-  border-left: 1px solid ${({theme}) => theme.colors.border};
+  border-left: 1px solid ${({ theme }) => theme.colors.border};
 `
 
 const StyledSpinner = styled(Spinner)`
@@ -47,18 +49,22 @@ const media = new Media();
 const MeetPage: NextPage<WatchPageProps> = ({
   serverRoomId,
 }) => {
-  const {query: {id}} = useRouter();
+  const { query: { id } } = useRouter();
   const socket = useSocket();
-  const [disabled,setDisabled] = useState(true);
+  const peerConnectionRef = useRef<PeerConnection>(new PeerConnection(
+    new SignalingChannel(socket),
+    {},
+  ))
+  const [disabled, setDisabled] = useState(true);
   const myVideoIdRef = useRef<string>(nanoid());
   const myVideoRef = createRef<HTMLVideoElement>();
   const dispatch = useDispatch();
-  const roomId = serverRoomId || id && id.length > 0 ? id[0] : ""; 
-  const {chat: chatState, room: roomState, profile: profileState} = useStores();
-  
+  const roomId = serverRoomId || id && id.length > 0 ? id[0] : "";
+  const { chat: chatState, room: roomState, profile: profileState } = useStores();
+
   const handleSubmitChat = (input: string) => {
     // socket.emit({ type: `${CLIENT_PREFIX}${roomId}`,payload: input})
-    socket.emit({type: `${CLIENT_PREFIX}${ACTION_SEND_CHAT}`, payload: input})
+    socket.emit({ type: `${CLIENT_PREFIX}${ACTION_SEND_CHAT}`, payload: input })
   }
 
   const handleConnectClose = () => {
@@ -77,21 +83,27 @@ const MeetPage: NextPage<WatchPageProps> = ({
   }
 
   const handleMediaCallback = (stream: MediaStream) => {
-    if(myVideoRef && myVideoRef.current){
+    if (myVideoRef && myVideoRef.current) {
       myVideoRef.current.srcObject = stream;
     }
   }
 
   useEffect(() => {
-    if(myVideoRef) {
-      media.getMedia(handleMediaCallback);
+    if (myVideoRef) {
+      media.getMedia(handleMediaCallback)
+        .then(() => {
+
+        })
     }
-  },[myVideoRef])
+  }, [myVideoRef])
 
   useEffect(() => {
-    if(roomId.length){
+    if (roomId.length) {
+      const { current: peerConnection } = peerConnectionRef;
+      peerConnection.makeCall({ roomId });
+
       const dummyUserId = nanoid(5);
-    
+
       socket.onceListen(`${SERVER_PREFIX}${ACTION_JOIN_ROOM}`, (message: RoomState) => {
         dispatch(roomActionCreator(ACTION_JOIN_ROOM, message));
         dispatch(chatActionCreator(ACTION_WAIT_CHAT));
@@ -99,38 +111,41 @@ const MeetPage: NextPage<WatchPageProps> = ({
         dispatch(roomActionCreator(ACTION_WAIT_LEAVE_ROOM));
         setDisabled(false);
       })
-
-      socket.emit({type: `${CLIENT_PREFIX}${ACTION_JOIN_ROOM}`, payload: {
-        roomId,
-        userName: dummyUserId,  
-      }})
-      
-      return () => {
-        socket.emit({type: `${CLIENT_PREFIX}${ACTION_LEAVE_ROOM}`, payload: {
+      socket.emit({
+        type: `${CLIENT_PREFIX}${ACTION_JOIN_ROOM}`, payload: {
           roomId,
           userName: dummyUserId,
-        }});
+        }
+      })
+
+      return () => {
+        socket.emit({
+          type: `${CLIENT_PREFIX}${ACTION_LEAVE_ROOM}`, payload: {
+            roomId,
+            userName: dummyUserId,
+          }
+        });
         handleConnectClose();
       }
     }
-  },[]);
+  }, []);
 
-  return(
+  return (
     <StyledWrapper>
       <StyledVideoArticle>
         <VideoRoom>
-          <Video 
+          <Video
             data-video-id={myVideoIdRef.current}
             ref={myVideoRef}
           />
         </VideoRoom>
         {/* @ts-expect-error */}
-        <BottomBar/>
+        <BottomBar />
       </StyledVideoArticle>
       <StyledChatArticle>
-        {disabled && <StyledSpinner/>}
-        <ChatBox 
-          onSubmitChat={handleSubmitChat} 
+        {disabled && <StyledSpinner />}
+        <ChatBox
+          onSubmitChat={handleSubmitChat}
           chats={chatState.chat}
           disabled={disabled}
         />
@@ -139,17 +154,17 @@ const MeetPage: NextPage<WatchPageProps> = ({
   )
 };
 
-export const getServerSideProps = async ({query}) => {
-  return({
+export const getServerSideProps = async ({ query }) => {
+  return ({
     props: {
-      serverRoomId: (query.id && query.id.length) ? query.id[0]: "",
+      serverRoomId: (query.id && query.id.length) ? query.id[0] : "",
     }
   })
 }
 
 export interface EmitChatPayload {
   user: string;
-  
+
 }
 
 export interface JoinRoomPayload {

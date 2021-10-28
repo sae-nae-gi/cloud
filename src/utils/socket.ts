@@ -6,7 +6,7 @@ type MessageType = "@sendMessage"
   | "@joinedRoom"
   | "@leaveRoom";
 
-interface MessageAction {
+export interface MessageAction {
   type: MessageType | string;
   payload: any;
 }

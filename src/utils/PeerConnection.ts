@@ -14,10 +14,10 @@ export class PeerConnection implements Connection {
     this._self = peerConnection;
   }
 
-  makeCall() {
+  makeCall(message?: any) {
     const peerConnection = new RTCPeerConnection(this.configuration);
     this.setSelf(peerConnection);
-    this.channel.initSignal(peerConnection);
+    this.channel.initSignal(peerConnection, message);
   }
 
   /**
@@ -25,13 +25,13 @@ export class PeerConnection implements Connection {
   */
   addLocalTrack(stream) {
     stream.getTracks().forEach(track => {
-      this._self.addTrack(track,stream);
+      this._self.addTrack(track, stream);
     })
   }
 
   addRemoteTrack(stream, cb) {
     this._self.addEventListener("track", async (event) => {
-      cb(stream,event)
+      cb(stream, event)
     })
   }
 
@@ -43,7 +43,7 @@ export class PeerConnection implements Connection {
 }
 
 export interface Connection {
-  makeCall: () => void;
+  makeCall: (message?: any) => void;
   addLocalTrack: (stream: MediaStream) => void;
   addRemoteTrack: (stream: MediaStream, cb: Function) => void;
 }
