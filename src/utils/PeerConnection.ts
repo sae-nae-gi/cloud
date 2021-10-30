@@ -1,22 +1,30 @@
-import { Channel } from ".";
+import { Channel, Media } from ".";
 
 export class PeerConnection implements Connection {
   private channel: Channel;
   private configuration: RTCConfiguration;
   private _self: RTCPeerConnection;
+  private media: Media;
 
   constructor(channel: Channel, configuration) {
     this.configuration = configuration;
     this.channel = channel;
+    this.media = new Media();
   }
 
   private setSelf(peerConnection: RTCPeerConnection) {
     this._self = peerConnection;
   }
 
-  makeCall(message?: any) {
+  async makeCall(message?: any) {
+    // create an RTCPeerConnection
     const peerConnection = new RTCPeerConnection(this.configuration);
     this.setSelf(peerConnection);
+    // add stream to RTCPeerConnection track
+    await this.media.getMedia((stream) => {
+      this._self.addTrack(stream);
+    });
+    // 
     this.channel.initSignal(peerConnection, message);
   }
 

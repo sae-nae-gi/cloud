@@ -15,6 +15,10 @@ export class SignalingChannel implements Channel {
     this.channel = socketIo;
   }
 
+  private async createSDPOffer(peerConnection: RTCPeerConnection) {
+    return await peerConnection.createOffer();
+  }
+
   async initSignal(peerConnection: RTCPeerConnection, message?: any) {
     this.onServerOffer(async ({ answer }) => {
       if (answer) {
@@ -22,10 +26,18 @@ export class SignalingChannel implements Channel {
         await peerConnection.setLocalDescription(remoteDesc);
       }
     });
+    this.onServerAnswer(async ({ }) => {
 
-    const offer = await peerConnection.createOffer();
+    });
+
+    const offer = await this.createSDPOffer(peerConnection);
     await peerConnection.setLocalDescription(offer);
-    this.send({ type: signalType.clientOffer, payload: message });
+    this.sendOffer({ type: signalType.clientOffer, payload: message });
+  }
+
+  // send the offer through the signaling server
+  private sendOffer(action: MessageAction) {
+    this.send(action);
   }
 
   send(action: MessageAction) {
