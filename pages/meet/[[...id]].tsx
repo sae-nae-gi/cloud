@@ -44,8 +44,6 @@ const StyledSpinner = styled(Spinner)`
 const CLIENT_PREFIX = "@client/";
 const SERVER_PREFIX = "@server/";
 
-const media = new Media();
-
 const MeetPage: NextPage<WatchPageProps> = ({
   serverRoomId,
 }) => {
@@ -89,18 +87,9 @@ const MeetPage: NextPage<WatchPageProps> = ({
   }
 
   useEffect(() => {
-    if (myVideoRef) {
-      media.getMedia(handleMediaCallback)
-        .then(() => {
-
-        })
-    }
-  }, [myVideoRef])
-
-  useEffect(() => {
     if (roomId.length) {
       const { current: peerConnection } = peerConnectionRef;
-      peerConnection.makeCall({ roomId });
+      peerConnection.invite({ roomId });
 
       const dummyUserId = nanoid(5);
 

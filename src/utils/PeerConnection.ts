@@ -16,7 +16,7 @@ export class PeerConnection implements Connection {
     this._self = peerConnection;
   }
 
-  async makeCall(message?: any) {
+  async invite(info: Record<string, any>) {
     // create an RTCPeerConnection
     const peerConnection = new RTCPeerConnection(this.configuration);
     this.setSelf(peerConnection);
@@ -24,8 +24,14 @@ export class PeerConnection implements Connection {
     await this.media.getMedia((stream) => {
       this._self.addTrack(stream);
     });
+    await this.handleNegotiate(info)
     // 
-    this.channel.initSignal(peerConnection, message);
+  }
+
+  private async handleNegotiate(info: Record<string, any>) {
+    // create SDP offer
+    this._self.createOffer()
+    await this.channel.negotiate(this._self, info)
   }
 
   /**
@@ -51,7 +57,7 @@ export class PeerConnection implements Connection {
 }
 
 export interface Connection {
-  makeCall: (message?: any) => void;
+  invite: (message?: any) => void;
   addLocalTrack: (stream: MediaStream) => void;
   addRemoteTrack: (stream: MediaStream, cb: Function) => void;
 }
