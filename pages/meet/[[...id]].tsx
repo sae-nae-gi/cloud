@@ -58,7 +58,7 @@ const MeetPage: NextPage<WatchPageProps> = ({
   const myVideoRef = createRef<HTMLVideoElement>();
   const dispatch = useDispatch();
   const roomId = serverRoomId || id && id.length > 0 ? id[0] : "";
-  const { chat: chatState, room: roomState, profile: profileState } = useStores();
+  const { chat: chatState, room: roomState, profile: { userName, } } = useStores();
 
   const handleSubmitChat = (input: string) => {
     // socket.emit({ type: `${CLIENT_PREFIX}${roomId}`,payload: input})
@@ -89,7 +89,10 @@ const MeetPage: NextPage<WatchPageProps> = ({
   useEffect(() => {
     if (roomId.length) {
       const { current: peerConnection } = peerConnectionRef;
-      peerConnection.invite({ roomId });
+      peerConnection.invite({
+        roomId,
+        userName,
+      });
 
       const dummyUserId = nanoid(5);
 

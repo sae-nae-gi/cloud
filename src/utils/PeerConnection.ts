@@ -1,4 +1,5 @@
 import { Channel, Media } from ".";
+import { Profile, RoomState } from "../stores";
 
 export class PeerConnection implements Connection {
   private channel: Channel;
@@ -16,22 +17,36 @@ export class PeerConnection implements Connection {
     this._self = peerConnection;
   }
 
-  async invite(info: Record<string, any>) {
+  async invite(info: InviteParams) {
     // create an RTCPeerConnection
     const peerConnection = new RTCPeerConnection(this.configuration);
     this.setSelf(peerConnection);
     // add stream to RTCPeerConnection track
-    await this.media.getMedia((stream) => {
-      this._self.addTrack(stream);
+    await this.media.getMedia((stream: MediaStream) => {
+      stream.getTracks().forEach((localStream) => {
+        this._self.addTrack(localStream);
+      })
     });
-    await this.handleNegotiate(info)
-    // 
+    const combinedOfferInfo = await this.combineOfferInfo(info);
+    await this.delegateNegotiate(combinedOfferInfo);
   }
 
-  private async handleNegotiate(info: Record<string, any>) {
-    // create SDP offer
-    this._self.createOffer()
-    await this.channel.negotiate(this._self, info)
+  private async combineOfferInfo(info: InviteParams) {
+    const offer = await this._self.createOffer();
+    await this._self.setLocalDescription(offer);
+
+    return ({
+      ...info,
+      sdp: this._self.localDescription,
+    })
+  }
+
+  // offer, localDescription을 만들어 반대 피어와 소통하는 책임을 Channel에게 위임한다.
+  private async delegateNegotiate(info: InviteParams) {
+    await this.channel.negotiate(this._self, {
+      ...info,
+      sdp: this._self.localDescription,
+    })
   }
 
   /**
@@ -56,8 +71,12 @@ export class PeerConnection implements Connection {
   }
 }
 
+export interface InviteParams extends
+  Pick<Profile, "userName">,
+  Pick<RoomState, "roomId"> { }
+
 export interface Connection {
-  invite: (message?: any) => void;
+  invite: (message: InviteParams) => void;
   addLocalTrack: (stream: MediaStream) => void;
   addRemoteTrack: (stream: MediaStream, cb: Function) => void;
 }

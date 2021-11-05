@@ -1,4 +1,5 @@
 import CloudSocket, { MessageAction } from "./socket";
+import type { InviteParams } from "./PeerConnection";
 
 export const signalType = {
   serverOffer: "@server/offer",
@@ -15,7 +16,7 @@ export class SignalingChannel implements Channel {
     this.channel = socketIo;
   }
 
-  async negotiate(peerConnection: RTCPeerConnection, info: Record<string, any>) {
+  async negotiate(peerConnection: RTCPeerConnection, info: NegotiateInfo) {
     this.onServerOffer(async ({ answer }) => {
       if (answer) {
         const remoteDesc = new RTCSessionDescription(answer);
@@ -46,6 +47,10 @@ export class SignalingChannel implements Channel {
   onServerOffer(cb: (message: any) => void) {
     this.channel.onListen(signalType.serverOffer, cb);
   }
+}
+
+interface NegotiateInfo extends InviteParams {
+  sdp: RTCSessionDescription;
 }
 
 export interface Channel {
