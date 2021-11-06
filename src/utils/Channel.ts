@@ -54,14 +54,6 @@ export class SignalingChannel implements Channel {
   private send(action: MessageAction) {
     this.channel.emit(action);
   }
-
-  onServerAnswer(cb: (message: any) => void) {
-    this.channel.onListen(signalType.serverAnswer, cb);
-  }
-
-  private onServerOffer(cb: (message: any) => void) {
-    this.channel.onListen(signalType.serverOffer, cb);
-  }
 }
 
 interface ActivateListenerHandler {
