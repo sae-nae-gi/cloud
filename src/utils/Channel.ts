@@ -16,7 +16,7 @@ export class SignalingChannel implements Channel {
     this.channel = socketIo;
   }
 
-  async negotiate(peerConnection: RTCPeerConnection, info: NegotiateInfo) {
+  async negotiateOffer(info: NegotiateInfo, type: "offer" | "answer") {
     // this.onServerOffer(async ({ answer }) => {
     //   if (answer) {
     //     const remoteDesc = new RTCSessionDescription(answer);
@@ -27,10 +27,13 @@ export class SignalingChannel implements Channel {
 
     // });
     this.sendOffer({
-      type: signalType.clientOffer,
+      type: type === "offer"
+        ? signalType.clientOffer
+        : signalType.clientAnswer,
       payload: info,
     });
   }
+
 
   activateListener(handler: {
     handleOfferMessage: (info: NegotiateInfo) => Promise<NegotiateInfo>,
@@ -38,14 +41,23 @@ export class SignalingChannel implements Channel {
     this.onReceiveServerOffer(handler.handleOfferMessage)
   }
 
-  private onReceiveServerOffer(infoHandler: (info: NegotiateInfo) => Promise<NegotiateInfo>) {
+  private onReceiveServerOffer(infoHandler: ActivateListenerHandler["handleOfferMessage"]) {
     this.channel.onListen(signalType.serverOffer, (info: NegotiateInfo) => {
       infoHandler(info)
-        .then((info) => {
+        .then((combinedOfferInfo) => {
           this.sendOffer({
             type: signalType.clientAnswer,
-            payload: info,
+            payload: combinedOfferInfo,
           });
+        })
+    })
+  }
+
+  private onReceiveServerAnswer(infoHandler: (info: NegotiateInfo) => Promise<NegotiateInfo>) {
+    this.channel.onListen(signalType.serverAnswer, (info: NegotiateInfo) => {
+      infoHandler(info)
+        .then((info) => {
+
         })
     })
   }
@@ -70,6 +82,7 @@ export class SignalingChannel implements Channel {
 
 interface ActivateListenerHandler {
   handleOfferMessage: (info: NegotiateInfo) => Promise<NegotiateInfo>;
+  handleAnswerMessage: (info: NegotiateInfo) => Promise<NegotiateInfo>;
 }
 
 export interface Channel {

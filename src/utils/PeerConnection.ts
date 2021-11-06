@@ -20,7 +20,8 @@ export class PeerConnection implements Connection {
     const peerConnection = new RTCPeerConnection(this.configuration);
     this.setSelf(peerConnection);
     this.channel.activateListener({
-      handleOfferMessage: this.handleOfferMessage,
+      handleOfferMessage: this.handleMessage("offer"),
+      handleAnswerMessage: this.handleMessage("answer"),
     })
   }
 
@@ -28,18 +29,28 @@ export class PeerConnection implements Connection {
     this._self = peerConnection;
   }
 
+  async answer(info: InviteParams) {
+    await this.media.getMedia((stream: MediaStream) => {
+      this.addLocalTrack(stream);
+    });
+
+  }
+
   async invite(info: InviteParams) {
     // add stream to RTCPeerConnection track
     await this.media.getMedia((stream: MediaStream) => {
       this.addLocalTrack(stream);
     });
-    const combinedOfferInfo = await this.combineOfferInfo(info);
+    const combinedOfferInfo = await this.combineSendInfo(info, "offer");
     await this.delegateNegotiate(combinedOfferInfo);
   }
 
-  private async combineOfferInfo(info: InviteParams): Promise<NegotiateInfo> {
-    const offer = await this._self.createOffer();
-    await this._self.setLocalDescription(offer);
+  private async combineSendInfo(info: InviteParams, type: "offer" | "answer"): Promise<NegotiateInfo> {
+    let sessionDescriptionInit;
+    sessionDescriptionInit = type === "offer"
+      ? await this._self.createOffer()
+      : await this._self.createAnswer();
+    await this._self.setLocalDescription(sessionDescriptionInit);
 
     return ({
       ...info,
@@ -55,15 +66,26 @@ export class PeerConnection implements Connection {
     })
   }
 
-  async handleOfferMessage(info: NegotiateInfo) {
+  handleMessage(type: "offer" | "answer") {
+    return async (info: NegotiateInfo) => {
+      const { sdp } = info;
+      const description = new RTCSessionDescription(sdp);
+      await this._self.setRemoteDescription(description);
+      // TODO 데코레이터로 navigator가 있음을 보장하자
+      let localStream = await navigator.mediaDevices.getUserMedia()
+      this.addLocalTrack(localStream);
+
+      return this.combineSendInfo(info, type)
+    }
+  }
+
+  async handleAnswerMessage(info: NegotiateInfo) {
     const { sdp } = info;
     const description = new RTCSessionDescription(sdp);
 
     await this._self.setRemoteDescription(description);
-    // 데코레이터로 navigator가 있음을 보장하자
-    let localStream = await navigator.mediaDevices.getUserMedia()
-    this.addLocalTrack(localStream);
-    return this.combineOfferInfo(info)
+
+
   }
 
   /**
