@@ -1,5 +1,5 @@
 import { Channel, Media } from ".";
-import { Profile, RoomState } from "../stores";
+import { InviteParams, NegotiateInfo } from "./types";
 
 export class PeerConnection implements Connection {
   private channel: Channel;
@@ -11,6 +11,17 @@ export class PeerConnection implements Connection {
     this.configuration = configuration;
     this.channel = channel;
     this.media = new Media();
+
+    this.init();
+  }
+
+  private init() {
+    // create an RTCPeerConnection
+    const peerConnection = new RTCPeerConnection(this.configuration);
+    this.setSelf(peerConnection);
+    this.channel.activateListener({
+      handleOfferMessage: this.handleOfferMessage,
+    })
   }
 
   private setSelf(peerConnection: RTCPeerConnection) {
@@ -18,20 +29,15 @@ export class PeerConnection implements Connection {
   }
 
   async invite(info: InviteParams) {
-    // create an RTCPeerConnection
-    const peerConnection = new RTCPeerConnection(this.configuration);
-    this.setSelf(peerConnection);
     // add stream to RTCPeerConnection track
     await this.media.getMedia((stream: MediaStream) => {
-      stream.getTracks().forEach((localStream) => {
-        this._self.addTrack(localStream);
-      })
+      this.addLocalTrack(stream);
     });
     const combinedOfferInfo = await this.combineOfferInfo(info);
     await this.delegateNegotiate(combinedOfferInfo);
   }
 
-  private async combineOfferInfo(info: InviteParams) {
+  private async combineOfferInfo(info: InviteParams): Promise<NegotiateInfo> {
     const offer = await this._self.createOffer();
     await this._self.setLocalDescription(offer);
 
@@ -47,6 +53,17 @@ export class PeerConnection implements Connection {
       ...info,
       sdp: this._self.localDescription,
     })
+  }
+
+  async handleOfferMessage(info: NegotiateInfo) {
+    const { sdp } = info;
+    const description = new RTCSessionDescription(sdp);
+
+    await this._self.setRemoteDescription(description);
+    // 데코레이터로 navigator가 있음을 보장하자
+    let localStream = await navigator.mediaDevices.getUserMedia()
+    this.addLocalTrack(localStream);
+    return this.combineOfferInfo(info)
   }
 
   /**
@@ -71,9 +88,6 @@ export class PeerConnection implements Connection {
   }
 }
 
-export interface InviteParams extends
-  Pick<Profile, "userName">,
-  Pick<RoomState, "roomId"> { }
 
 export interface Connection {
   invite: (message: InviteParams) => void;

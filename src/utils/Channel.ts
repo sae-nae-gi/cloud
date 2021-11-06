@@ -1,5 +1,5 @@
 import CloudSocket, { MessageAction } from "./socket";
-import type { InviteParams } from "./PeerConnection";
+import { NegotiateInfo } from "./types";
 
 export const signalType = {
   serverOffer: "@server/offer",
@@ -17,18 +17,37 @@ export class SignalingChannel implements Channel {
   }
 
   async negotiate(peerConnection: RTCPeerConnection, info: NegotiateInfo) {
-    this.onServerOffer(async ({ answer }) => {
-      if (answer) {
-        const remoteDesc = new RTCSessionDescription(answer);
-        await peerConnection.setLocalDescription(remoteDesc);
-      }
-    });
-    this.onServerAnswer(async ({ }) => {
+    // this.onServerOffer(async ({ answer }) => {
+    //   if (answer) {
+    //     const remoteDesc = new RTCSessionDescription(answer);
+    //     await peerConnection.setLocalDescription(remoteDesc);
+    //   }
+    // });
+    // this.onServerAnswer(async ({ }) => {
 
-    });
+    // });
     this.sendOffer({
-      type: signalType.clientOffer, payload: info
+      type: signalType.clientOffer,
+      payload: info,
     });
+  }
+
+  activateListener(handler: {
+    handleOfferMessage: (info: NegotiateInfo) => Promise<NegotiateInfo>,
+  }) {
+    this.onReceiveServerOffer(handler.handleOfferMessage)
+  }
+
+  private onReceiveServerOffer(infoHandler: (info: NegotiateInfo) => Promise<NegotiateInfo>) {
+    this.channel.onListen(signalType.serverOffer, (info: NegotiateInfo) => {
+      infoHandler(info)
+        .then((info) => {
+          this.sendOffer({
+            type: signalType.clientAnswer,
+            payload: info,
+          });
+        })
+    })
   }
 
   // send the offer through the signaling server
@@ -44,17 +63,17 @@ export class SignalingChannel implements Channel {
     this.channel.onListen(signalType.serverAnswer, cb);
   }
 
-  onServerOffer(cb: (message: any) => void) {
+  private onServerOffer(cb: (message: any) => void) {
     this.channel.onListen(signalType.serverOffer, cb);
   }
 }
 
-interface NegotiateInfo extends InviteParams {
-  sdp: RTCSessionDescription;
+interface ActivateListenerHandler {
+  handleOfferMessage: (info: NegotiateInfo) => Promise<NegotiateInfo>;
 }
 
 export interface Channel {
   // peerConnection을 주입받아 Signaling Channel와 소통하는 책임을 맡음
   negotiate: (peerConnection: RTCPeerConnection, message?: any) => void;
-  send: (event: any) => void;
+  activateListener: (handler: ActivateListenerHandler) => void;
 }
