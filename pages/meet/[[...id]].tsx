@@ -49,10 +49,7 @@ const MeetPage: NextPage<WatchPageProps> = ({
 }) => {
   const { query: { id } } = useRouter();
   const socket = useSocket();
-  const peerConnectionRef = useRef<PeerConnection>(new PeerConnection(
-    new SignalingChannel(socket),
-    {},
-  ))
+  const peerConnectionRef = useRef<PeerConnection>();
   const [disabled, setDisabled] = useState(true);
   const myVideoIdRef = useRef<string>(nanoid());
   const myVideoRef = createRef<HTMLVideoElement>();
@@ -88,14 +85,16 @@ const MeetPage: NextPage<WatchPageProps> = ({
 
   useEffect(() => {
     if (roomId.length) {
+      peerConnectionRef.current = new PeerConnection(
+        new SignalingChannel(socket),
+        {},
+      )
       const { current: peerConnection } = peerConnectionRef;
       peerConnection.invite({
         roomId,
         userName,
       });
-
       const dummyUserId = nanoid(5);
-
       socket.onceListen(`${SERVER_PREFIX}${ACTION_JOIN_ROOM}`, (message: RoomState) => {
         dispatch(roomActionCreator(ACTION_JOIN_ROOM, message));
         dispatch(chatActionCreator(ACTION_WAIT_CHAT));

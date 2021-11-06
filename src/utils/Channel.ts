@@ -16,17 +16,8 @@ export class SignalingChannel implements Channel {
     this.channel = socketIo;
   }
 
-  async negotiateOffer(info: NegotiateInfo, type: "offer" | "answer") {
-    // this.onServerOffer(async ({ answer }) => {
-    //   if (answer) {
-    //     const remoteDesc = new RTCSessionDescription(answer);
-    //     await peerConnection.setLocalDescription(remoteDesc);
-    //   }
-    // });
-    // this.onServerAnswer(async ({ }) => {
-
-    // });
-    this.sendOffer({
+  negotiate(info: NegotiateInfo, type: "offer" | "answer") {
+    this.send({
       type: type === "offer"
         ? signalType.clientOffer
         : signalType.clientAnswer,
@@ -34,18 +25,17 @@ export class SignalingChannel implements Channel {
     });
   }
 
-
-  activateListener(handler: {
-    handleOfferMessage: (info: NegotiateInfo) => Promise<NegotiateInfo>,
-  }) {
-    this.onReceiveServerOffer(handler.handleOfferMessage)
+  activateListener(handler: ActivateListenerHandler) {
+    this.onReceiveServerOffer(handler.handleOfferMessage);
+    this.onReceiveServerAnswer(handler.handleAnswerMessage);
   }
 
   private onReceiveServerOffer(infoHandler: ActivateListenerHandler["handleOfferMessage"]) {
     this.channel.onListen(signalType.serverOffer, (info: NegotiateInfo) => {
+      console.log({ offer: info })
       infoHandler(info)
         .then((combinedOfferInfo) => {
-          this.sendOffer({
+          this.send({
             type: signalType.clientAnswer,
             payload: combinedOfferInfo,
           });
@@ -55,19 +45,13 @@ export class SignalingChannel implements Channel {
 
   private onReceiveServerAnswer(infoHandler: (info: NegotiateInfo) => Promise<NegotiateInfo>) {
     this.channel.onListen(signalType.serverAnswer, (info: NegotiateInfo) => {
+      console.log({ answer: info })
       infoHandler(info)
-        .then((info) => {
-
-        })
     })
   }
 
-  // send the offer through the signaling server
-  private sendOffer(action: MessageAction) {
-    this.send(action);
-  }
 
-  send(action: MessageAction) {
+  private send(action: MessageAction) {
     this.channel.emit(action);
   }
 
@@ -87,6 +71,6 @@ interface ActivateListenerHandler {
 
 export interface Channel {
   // peerConnection을 주입받아 Signaling Channel와 소통하는 책임을 맡음
-  negotiate: (peerConnection: RTCPeerConnection, message?: any) => void;
+  negotiate: (info: NegotiateInfo, type: "offer" | "answer") => void;
   activateListener: (handler: ActivateListenerHandler) => void;
 }

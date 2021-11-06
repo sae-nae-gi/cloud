@@ -6,6 +6,7 @@ export class PeerConnection implements Connection {
   private configuration: RTCConfiguration;
   private _self: RTCPeerConnection;
   private media: Media;
+  private myInfo: InviteParams;
 
   constructor(channel: Channel, configuration) {
     this.configuration = configuration;
@@ -13,6 +14,10 @@ export class PeerConnection implements Connection {
     this.media = new Media();
 
     this.init();
+  }
+
+  get hasMedia() {
+    return typeof this.media !== "undefined";
   }
 
   private init() {
@@ -29,20 +34,23 @@ export class PeerConnection implements Connection {
     this._self = peerConnection;
   }
 
-  async answer(info: InviteParams) {
-    await this.media.getMedia((stream: MediaStream) => {
-      this.addLocalTrack(stream);
-    });
+  private setMyInfo(myInfo: InviteParams) {
+    this.myInfo = myInfo;
+  }
 
+  async answer(info: InviteParams) {
+    // add stream to RTCPeerConnection track
+    const combinedOfferInfo = await this.combineSendInfo(info, "answer");
+    await this.delegateNegotiate(combinedOfferInfo, "answer");
   }
 
   async invite(info: InviteParams) {
+    this.setMyInfo(info);
+    await this.media.getMedia();
     // add stream to RTCPeerConnection track
-    await this.media.getMedia((stream: MediaStream) => {
-      this.addLocalTrack(stream);
-    });
+    this.addLocalTrack(this.media.getStream());
     const combinedOfferInfo = await this.combineSendInfo(info, "offer");
-    await this.delegateNegotiate(combinedOfferInfo);
+    await this.delegateNegotiate(combinedOfferInfo, "offer");
   }
 
   private async combineSendInfo(info: InviteParams, type: "offer" | "answer"): Promise<NegotiateInfo> {
@@ -59,11 +67,11 @@ export class PeerConnection implements Connection {
   }
 
   // offer, localDescription을 만들어 반대 피어와 소통하는 책임을 Channel에게 위임한다.
-  private async delegateNegotiate(info: InviteParams) {
-    await this.channel.negotiate(this._self, {
+  private async delegateNegotiate(info: InviteParams, type: "offer" | "answer") {
+    await this.channel.negotiate({
       ...info,
       sdp: this._self.localDescription,
-    })
+    }, type)
   }
 
   handleMessage(type: "offer" | "answer") {
@@ -72,20 +80,20 @@ export class PeerConnection implements Connection {
       const description = new RTCSessionDescription(sdp);
       await this._self.setRemoteDescription(description);
       // TODO 데코레이터로 navigator가 있음을 보장하자
-      let localStream = await navigator.mediaDevices.getUserMedia()
-      this.addLocalTrack(localStream);
-
-      return this.combineSendInfo(info, type)
+      // @server/offer를 받았을 때는 @client/answer를 준비해야 한다.
+      if (type === "offer") {
+        return this.combineSendInfo(info, "answer")
+      }
+      else {
+        return Promise.resolve({} as NegotiateInfo);
+      }
     }
   }
 
   async handleAnswerMessage(info: NegotiateInfo) {
     const { sdp } = info;
     const description = new RTCSessionDescription(sdp);
-
     await this._self.setRemoteDescription(description);
-
-
   }
 
   /**
@@ -112,6 +120,7 @@ export class PeerConnection implements Connection {
 
 
 export interface Connection {
+  hasMedia: boolean;
   invite: (message: InviteParams) => void;
   addLocalTrack: (stream: MediaStream) => void;
   addRemoteTrack: (stream: MediaStream, cb: Function) => void;
