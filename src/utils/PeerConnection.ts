@@ -47,7 +47,7 @@ export class PeerConnection implements Connection {
   async invite(info: InviteParams) {
     this.setMyInfo(info);
     await this.media.getMedia();
-    // add stream to RTCPeerConnection track
+    // Fetching
     this.addLocalTrack(this.media.getStream());
     const combinedOfferInfo = await this.combineSendInfo(info, "offer");
     await this.delegateNegotiate(combinedOfferInfo, "offer");
@@ -105,16 +105,15 @@ export class PeerConnection implements Connection {
     })
   }
 
-  addRemoteTrack(stream, cb) {
-    this._self.addEventListener("track", async (event) => {
-      cb(stream, event)
-    })
-  }
+  // 네트워크 정보(ICE candidate)를 교환한다.
+  exChangeNetworkInfo() {
+    if (this._self) {
+      this._self.onicecandidate = () => {
 
-  exChangeNetworkInfo(peerConnection: RTCPeerConnection) {
-    peerConnection.onicecandidate = () => {
+      };
 
-    };
+      this._self.addIceCandidate
+    }
   }
 }
 
@@ -123,5 +122,4 @@ export interface Connection {
   hasMedia: boolean;
   invite: (message: InviteParams) => void;
   addLocalTrack: (stream: MediaStream) => void;
-  addRemoteTrack: (stream: MediaStream, cb: Function) => void;
 }

@@ -1,3 +1,4 @@
+// 음성, 영상 데이터를 채집함.
 class MediaConnection implements Media {
   stream: MediaStream;
 

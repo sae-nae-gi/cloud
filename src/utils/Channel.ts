@@ -9,6 +9,7 @@ export const signalType = {
   iceCandidate: "@server/newIceCandidate",
 }
 
+// 시그널링 서버와의 시그널링을 담당한다.
 export class SignalingChannel implements Channel {
   private channel: CloudSocket;
 
@@ -16,6 +17,7 @@ export class SignalingChannel implements Channel {
     this.channel = socketIo;
   }
 
+  // 상대 피어와 (시그널링 서버와) Media Capability를 교환함
   negotiate(info: NegotiateInfo, type: "offer" | "answer") {
     this.send({
       type: type === "offer"
