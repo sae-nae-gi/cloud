@@ -9,7 +9,12 @@ export class PeerConnection implements Connection {
   private myInfo: InviteParams;
 
   constructor(channel: Channel, configuration) {
-    this.configuration = configuration;
+    this.configuration = configuration || {
+      iceServers: [
+        { urls: 'stun:stun.services.mozilla.com' },
+        { urls: 'stun:stun.l.google.com:19302' },
+      ],
+    };
     this.channel = channel;
     this.media = new Media();
 
