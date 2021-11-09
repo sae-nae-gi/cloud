@@ -7,6 +7,7 @@ export const signalType = {
   serverAnswer: "@server/answer",
   clientAnswer: "@client/answer",
   iceCandidate: "@server/newIceCandidate",
+
 }
 
 // 시그널링 서버와의 시그널링을 담당한다.
@@ -52,6 +53,13 @@ export class SignalingChannel implements Channel {
     })
   }
 
+  sendIceEvent(event: RTCPeerConnectionIceEvent) {
+    this.send({
+      type: signalType.iceCandidate, payload: {
+        iceEvent: event.candidate,
+      }
+    })
+  }
 
   private send(action: MessageAction) {
     this.channel.emit(action);
@@ -67,4 +75,5 @@ export interface Channel {
   // peerConnection을 주입받아 Signaling Channel와 소통하는 책임을 맡음
   negotiate: (info: NegotiateInfo, type: "offer" | "answer") => void;
   activateListener: (handler: ActivateListenerHandler) => void;
+  sendIceEvent: (event: RTCPeerConnectionIceEvent) => void;
 }

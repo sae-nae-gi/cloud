@@ -60,6 +60,7 @@ export class PeerConnection implements Connection {
 
   private async combineSendInfo(info: InviteParams, type: "offer" | "answer"): Promise<NegotiateInfo> {
     let sessionDescriptionInit;
+    // candidates 수집을 위해서
     sessionDescriptionInit = type === "offer"
       ? await this._self.createOffer()
       : await this._self.createAnswer();
@@ -108,6 +109,23 @@ export class PeerConnection implements Connection {
     stream.getTracks().forEach(track => {
       this._self.addTrack(track, stream);
     })
+  }
+
+  handleIceCandidate(handler?: (event: RTCPeerConnectionIceEvent) => void) {
+    this._self.onicecandidate = (e) => {
+      if (handler) {
+        handler(e);
+      }
+      this.channel.sendIceEvent(e);
+    }
+  }
+
+  handleOnTrack(handler: (event: RTCTrackEvent) => void) {
+    this._self.ontrack = (e) => {
+      if (handler) {
+        handler(e);
+      }
+    }
   }
 
   // 네트워크 정보(ICE candidate)를 교환한다.
