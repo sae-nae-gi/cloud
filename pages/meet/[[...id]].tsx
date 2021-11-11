@@ -95,6 +95,7 @@ const MeetPage: NextPage<WatchPageProps> = ({
         userName,
       });
       const dummyUserId = nanoid(5);
+      // 새로운 유저가 방에 접속했을 때,
       socket.onceListen(`${SERVER_PREFIX}${ACTION_JOIN_ROOM}`, (message: RoomState) => {
         dispatch(roomActionCreator(ACTION_JOIN_ROOM, message));
         dispatch(chatActionCreator(ACTION_WAIT_CHAT));
