@@ -22,7 +22,7 @@ Resources:
     Properties:
       VpcId: !Ref ToturialVPC
       CidrBlock: 172.0.0.0/24
-      AvailabilityZone: !Select 
+      AvailabilityZone: !Select
         - '0'
         - !GetAZs ''
 
@@ -31,18 +31,27 @@ Resources:
     Properties:
       VpcId: !Ref ToturialVPC
       CidrBlock: 172.0.1.0/24
-      AvailabilityZone: !Select 
+      AvailabilityZone: !Select
         - '0'
         - !GetAZs ''
 
   PublicSubnet02:
-      Type: AWS::EC2::Subnet
-      Properties:
-        VpcId: !Ref ToturialVPC
-        CidrBlock: 172.0.2.0/24
-        AvailabilityZone: !Select
-          - '1'
-          - !GetAZs ''
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref ToturialVPC
+      CidrBlock: 172.0.2.0/24
+      AvailabilityZone: !Select
+        - '1'
+        - !GetAZs ''
+
+  PrivateSubnet02:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref ToturialVPC
+      CidrBlock: 172.0.3.0/24
+      AvailabilityZone: !Select
+        - '1'
+        - !GetAZs ''
 
   PublicRouteTable:
     Type: AWS::EC2::RouteTable
@@ -62,6 +71,12 @@ Resources:
       SubnetId: !Ref PublicSubnet01
       RouteTableId: !Ref PublicRouteTable
 
+  PublicSubnetRouteTableAssociation2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet02
+      RouteTableId: !Ref PublicRouteTable
+
   PrivateRouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
@@ -73,12 +88,23 @@ Resources:
       SubnetId: !Ref PrivateSubnet01
       RouteTableId: !Ref PrivateRouteTable
 
+  PrivateSubnetRouteTableAssociation2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet02
+      RouteTableId: !Ref PrivateRouteTable
+
 Outputs:
   VPC:
     Description: Toturial VPC ID
     Value: !Ref ToturialVPC
   AZ1:
     Description: Availability Zone 1
-    Value: !GetAtt 
+    Value: !GetAtt
       - PublicSubnet01
+      - AvailabilityZone
+  AZ2:
+    Description: Availability Zone 2
+    Value: !GetAtt
+      - PublicSubnet02
       - AvailabilityZone
