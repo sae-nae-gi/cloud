@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: Make a VPC 1
+Description: Make a VPC 2
 
 Resources:
   ToturialVPC:
@@ -34,6 +34,15 @@ Resources:
       AvailabilityZone: !Select 
         - '0'
         - !GetAZs ''
+
+  PublicSubnet02:
+      Type: AWS::EC2::Subnet
+      Properties:
+        VpcId: !Ref ToturialVPC
+        CidrBlock: 172.0.2.0/24
+        AvailabilityZone: !Select
+          - '1'
+          - !GetAZs ''
 
   PublicRouteTable:
     Type: AWS::EC2::RouteTable
